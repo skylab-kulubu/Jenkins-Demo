@@ -241,7 +241,7 @@ docker run -p 80:80 --network=devops --name=jenkins-test-www <docker image ismi>
 Docker compose bizim için otomatik olarak hem `Build` hem `Run` işlevini yerine getirmekte.
 
 #### Jenkinsfile'ı İnceleyelim
-
+Başlamadan önce dikkat! repository içerisindeki Jenkinsfile içerisinde düzenlemeler yapmalısınız, yorum olarka işaretleniş satırları düzenlemelisin!
 ```groovy
 pipeline {
   agent {
@@ -273,3 +273,82 @@ pipeline {
 Bizim pipeline hattımızda öncelikle eğer varsa Docker Compose ile çalıştırılmış konteyner(ler)ı durdurmak ardından `-d` flagi ile `deamon` veya `deattached` modda `--build` flagi ile de eğer yapabiliyorsa imagei build etmesini sağlayarak konteyner(ler)i çalıştırmakta
 
 Bütün adımlar başarılı bir şekilde gerçekleştiğinde `Build Now` butonuna bastığınız zaman Jenkins'i çalıştırdığınız makinenin `80` portundan websitesine erişebilirsiniz, Pipeline'ı SCM'e bağlayarak her `commit` yapıldığında veya belirli zaman aralıklarıyla yapılacak kontroller sonucu Pipeline tetiklenecek ve web sunucumuzun içeriği değişecek.
+
+## Pipeline'a Güvenlik Entegrasyonu
+### Trufflehog
+```groovy
+stage('Trufflehog') {
+      steps {
+        echo "Scanning..."
+        sh "docker run --rm -v $PWD:/pwd trufflesecurity/trufflehog:latest github --json --repo ${GIT_URL}"
+      }
+    }
+```
+Pipeline içerisinde örnek bir Trufflehog kullanımı yukarıdaki gibidir. Trufflehog'u pipeline içerisinde kullanabilmek için makinede tercihen Docker aracılığıyla yüklenmiş Trufflehog olmalı. Bunun için;
+```bash
+docker pull trufflesecurity/trufflehog:latest
+```
+
+> `--rm` işlem bittikten sonra imagei siler ve sistemde depolama sorunlarının önüne geçer
+
+> `-v` konteyner içerisindeki dosya içeriğine belirlenen dosya dizinine bağlar, bizim örneğimizde bu `$PWD` değişkeniyle mevcut çalışma dizinini belirtmekte.
+
+> `--json` Trufflehog'a özel olan bir parametre ve çıktıyı `JSON` formatında almamızı sağlar
+
+> `--repo` Trufflehog'a özel bir parametredir ve belirtilen Git Repositorysini taramasını sağlar, bizim örneğimizde `$GIT_URL` değişkeni Jenkins tarafından sağlanarak Pipeline oluştururken belirtilen Git URL'sini referans etmektedir.
+
+Trufflehog bizim için `Credidental Hygen` konseptini sağlamaktadir. API anahtarı, JWT Token, kullanıcı adı ve şifresi gibi bilgileri tarayarak olası bilgi güvenliği sorunlarının önüne geçmektedir.
+### Trivy
+Trivy bizim için Trufflehog ile aynı işlemleri gerçekleştirmekle beraber Build edilen Docker imagelerini de tarayarak konteyner güvenliği kapsamında da çalışmaktadır. İlk örnekte repository scan, ikinci örnekte ise Docker Image Scan işlemlerini gerçekleştirmektedir.
+Trivy sisteminize yüklemek için talimatları [resmi kaynaktan](https://aquasecurity.github.io/trivy/v0.18.3/installation/) inceleyebilirsiniz.
+```groovy
+stage('Trivy Repo Scan'){
+      steps{
+        echo "Scanning..."
+        sh "trivy repository --branch ${BRANCH} ${GIT_URL}"
+      }
+    }
+```
+
+> `trivy repository` veya `trivy repo` repository taraması yapacağımızı belirlemekte
+
+> `--branch` belirli bir branchi taramamızı sağlar
+
+
+```groovy
+stage('Trivy Docker Image Scan'){
+      steps{
+        echo "Trviy Docker Image Scan" 
+        sh "trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}"
+      }
+    }
+```
+
+> `trivy image` image taraması yapacağımızı belirtir
+
+> `--severity` belirli riskteki güvenli sorunlarını göstermesini belirtir
+
+### Snyk
+
+
+
+### OWASP ZAP
+OWASP ZAP uygulamasının docker ile çalıştırılabilir bir versiyonudur, çalışır durumdaki web uygulmasını taramamızı sağlar. Diğer uygulamalarda statik analiz yaparken ZAP dinamik analiz yapmakta.
+
+```groovy
+stage('Zaproxy Baseline Scan') {
+      steps {
+        echo "Initializing baseling scan..."
+        sh "docker run -v ${PWD}:/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${HOST} -g gen.conf -r testreport.html"
+        echo "Baseling scan completed succesfully"
+      }
+```
+
+> `-t` TARGET değerini tanımlamakta
+
+> `-g` config dosyasını tanımlar
+
+> `-r` Test edilen uygulamanın `HTML` formatında rapor çıktısını verir.
+
+Daha detaylı bilgilendirme için [ZAP Docker](https://www.zaproxy.org/docs/docker/about/).
+
