@@ -104,6 +104,7 @@ docker run \
 -p 8080:8080 \
 -p 50000:50000 \
 --restart=on-failure \
+--name jenkins \
 jenkins/jenkins:latest
 ```
 veya `docker compose` kullanacaksanız
@@ -111,6 +112,7 @@ veya `docker compose` kullanacaksanız
 services:
     jenkins:
         image: jenkins:latest
+        container_name: jenkins
         ports:
             - "8080:8080"
             - "50000:50000"
@@ -118,3 +120,46 @@ services:
             condition: on-failure
             delay: 5s
 ```
+
+### Jenkins Arayüzüne Giriş
+İlk giriş için kullanıcı şifresini öğrenmek için;
+```bash
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+> `docker exec` çalışan Docker konteynerında shell komutu çalıştırmamızı sağlar.
+
+> `jenkins` komutumuzda konteynerin adını belirtmekte, bunun yerine `docker ps` komutunu çalıştırdıktan sonra Jenkins konteynerinin `Image ID` değerini de kullanabilirsiniz.
+
+> `cat /var/jenkins_home/secrets/initialAdminPassword` ise tek seferlik yönetici şifremizi okumamızı sağlamakta.
+Aşağıdaki görsellerdeki adımları izleyerek kurulumu ve ajan kurulumunu gerçekleştirebilirsiniz. Fakat herşeydene önce `SSH` servisinin çalışıp çalışmadığını kontrol edin.
+`SSH` servisini çalışma durumunu kontrol etmek için;
+```bash
+sudo systemctl status ssh
+```
+`SSH` servisini çalıştırmak için;
+```bash
+sudo systemctl start ssh
+```
+`SSH` servisini başlangıçta otomatik başlamasını sağlamak için;
+```bash
+sudo sytemctl enable --now ssh
+```
+
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*-v_EEHzFTlJeyLeCUQeiXg.png] 
+
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*8aov0-hixvK1aSnFePKHvA.png]
+
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*ZqUR56PwBn1pCzHn__PVEw.png]
+
+Yukarıdaki görselde ajanımızın ismini `docker-agent` olarak belirliyoruz, ilerleyen süreçte bu değer sistemimizin tutarlılığı için önemli.
+
+Oluşturacağımız `agent` için isim koyduktan sonra `Label` bölümünü `agent` için koyduğunuz isimle aynı yapıp `Launch Method` seçeneğini `Launch agents via SSH' seçeneğini seçip ana makinemizin IP adresi ile ana makinemizde oluşturduğumuz jenkins kullanıcının kullanıcı adı ve şifresini `Credidentals` seçeneğinin altında bulunan Add butonuna tıkladıktan sonra girip `Host Verification Strategy` seçeneğini `Non Verifying Verification Strategy` olarak seçiyoruz.
+
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*YIHNtxd7wvXmKU39rF8SWA.png]
+
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*PTPN8amklp6gufRDvST7sQ.png]
+
+Geri kalan seçenekleri ellemeden `Save` butonuna tıklayıp `agent` işlemini tamamlıyoruz.
+
+Jenkins için ajanımız hazır.
