@@ -272,3 +272,4 @@ pipeline {
 
 Bizim pipeline hattımızda öncelikle eğer varsa Docker Compose ile çalıştırılmış konteyner(ler)ı durdurmak ardından `-d` flagi ile `deamon` veya `deattached` modda `--build` flagi ile de eğer yapabiliyorsa imagei build etmesini sağlayarak konteyner(ler)i çalıştırmakta
 
+Bütün adımlar başarılı bir şekilde gerçekleştiğinde `Build Now` butonuna bastığınız zaman Jenkins'i çalıştırdığınız makinenin `80` portundan websitesine erişebilirsiniz, Pipeline'ı SCM'e bağlayarak her `commit` yapıldığında veya belirli zaman aralıklarıyla yapılacak kontroller sonucu Pipeline tetiklenecek ve web sunucumuzun içeriği değişecek.
