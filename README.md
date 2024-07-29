@@ -51,9 +51,64 @@ Bütün kurulumlar gerçekleştikten sonra kullanıcınızı aşağıdaki komut 
 ```bash
 sudo usermod -aG docker $USER
 ```
+
+> -a etiketi üyesi olunan gruplara ekleme yapmamızı sağlamakta.
+> -G kullanıcının dahil olduğu grup değerini değiştirmemizi sağlamakta.
+
 ardından grup değerlerini güncellemek için aşağıdaki komutu çalıştırın
 ```bash
 newgrp docker
 ```
 
 Sisteminiz Docker kullanımı için hazır!
+
+## Jenkins Kurulumu
+Jenkins'i Docker konteynerı olarak çalıştıracağız fakat aynı makineye Jenkins ajanı da kuracağımız için aşağıdaki komut ile Debian/Ubuntu tabanlı makinelerinize Java Runtime Environment kurulumunu gerçekleştirebilirsizin.
+```bash
+sudo apt install default-jre
+```
+
+Fedora kurulumu için [kaynağı](https://docs.fedoraproject.org/en-US/quick-docs/installing-java/) inceleyebilirsiniz.
+
+Adından Jenkins için bir kullanıcı oluşturuyoruz, bu sayede `Least Privilege` yasasına uyarak sistemi güvenli çalıştırmaya devam edeceğiz.
+```bash
+sudo useradd -m -G docker -s /bin/bash -U jenkins &&\
+sudo passwd jenkins
+```
+
+> -m kullanıcı için ev dizini açmak istediğimzi belirtir.
+> -G kullanıcıyı oluştururken dahil etmek istediğimiz grupları belirtir
+> -s kullanıcının default shell değerini atar
+> -U kullanıcı oluşturulurken kullanıcının adıyla aynı ada sahip bir kullanıcı grubu oluşturur.
+
+Son olarak Jenkins'i sistemimize Docker kullanarak yükleyelim
+
+```bash
+docker pull jenkins/jenkins:latest
+```
+> `docker pull` komutu Docker Hub üzerinden image çekeceğimizi belirtir
+> `jenkins/jenkins` kullanacağımız image değeridir
+> `latest` en son sürüm imagei kullanmak istediğimizi belirtir, herhangi bir sürüm belirtmek istiyorsanız image isminden sonra `:` yazıp sürüm değerini belirtebilirisiniz.
+
+Jenkins'in diğer versiyonları için [Jenkins Docker Hub](https://hub.docker.com/r/jenkins/jenkins) sayfasına göz atabilirsiniz.
+
+Jenkins'i çalıştırmak için aşağıdaki komutu kullanabilirisiniz;
+```bash
+docker run \
+-p 8080:8080 \
+-p 50000:50000 \
+--restart=on-failure \
+jenkins/jenkins:latest
+```
+veya `docker compose` kullanacaksanız
+```YAML
+services:
+    jenkins:
+        image: jenkins:latest
+        ports:
+            - "8080:8080"
+            - "50000:50000"
+        restart-policy:
+            condition: on-failure
+            delay: 5s
+```
