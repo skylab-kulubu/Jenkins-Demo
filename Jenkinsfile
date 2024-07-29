@@ -39,7 +39,7 @@ pipeline {
     stage('Trivy Docker Image Scan'){
       steps{
         echo "Trviy Docker Image Scan" 
-        // sh "trivy image simple-webserver --severity HIGH,CRITICAL ${IMAGE_NAME}"
+        // sh "trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}"
       }
     }
     stage('Zaproxy Baseline Scan') {
