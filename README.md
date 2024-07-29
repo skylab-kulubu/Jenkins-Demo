@@ -146,19 +146,19 @@ sudo systemctl start ssh
 sudo sytemctl enable --now ssh
 ```
 
-![https://miro.medium.com/v2/resize:fit:720/format:webp/1*-v_EEHzFTlJeyLeCUQeiXg.png] 
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*-v_EEHzFTlJeyLeCUQeiXg.png](img)
 
-![https://miro.medium.com/v2/resize:fit:720/format:webp/1*8aov0-hixvK1aSnFePKHvA.png]
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*8aov0-hixvK1aSnFePKHvA.png](img)
 
-![https://miro.medium.com/v2/resize:fit:720/format:webp/1*ZqUR56PwBn1pCzHn__PVEw.png]
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*ZqUR56PwBn1pCzHn__PVEw.png](img)
 
 Yukarıdaki görselde ajanımızın ismini `docker-agent` olarak belirliyoruz, ilerleyen süreçte bu değer sistemimizin tutarlılığı için önemli.
 
 Oluşturacağımız `agent` için isim koyduktan sonra `Label` bölümünü `agent` için koyduğunuz isimle aynı yapıp `Launch Method` seçeneğini `Launch agents via SSH' seçeneğini seçip ana makinemizin IP adresi ile ana makinemizde oluşturduğumuz jenkins kullanıcının kullanıcı adı ve şifresini `Credidentals` seçeneğinin altında bulunan Add butonuna tıkladıktan sonra girip `Host Verification Strategy` seçeneğini `Non Verifying Verification Strategy` olarak seçiyoruz.
 
-![https://miro.medium.com/v2/resize:fit:720/format:webp/1*YIHNtxd7wvXmKU39rF8SWA.png]
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*YIHNtxd7wvXmKU39rF8SWA.png](img)
 
-![https://miro.medium.com/v2/resize:fit:720/format:webp/1*PTPN8amklp6gufRDvST7sQ.png]
+![https://miro.medium.com/v2/resize:fit:720/format:webp/1*PTPN8amklp6gufRDvST7sQ.png](img)
 
 Geri kalan seçenekleri ellemeden `Save` butonuna tıklayıp `agent` işlemini tamamlıyoruz.
 
