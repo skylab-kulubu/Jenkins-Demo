@@ -145,6 +145,9 @@ sudo systemctl start ssh
 ```bash
 sudo sytemctl enable --now ssh
 ```
+
+#### Jenkins Ajan Kurulumu
+
 <img src="https://miro.medium.com/v2/resize:fit:720/format:webp/1*-v_EEHzFTlJeyLeCUQeiXg.png"></img>
 
 <img src="https://miro.medium.com/v2/resize:fit:720/format:webp/1*8aov0-hixvK1aSnFePKHvA.png"></img>
@@ -163,3 +166,109 @@ Oluşturacağımız `agent` için isim koyduktan sonra `Label` bölümünü `age
 Geri kalan seçenekleri ellemeden `Save` butonuna tıklayıp `agent` işlemini tamamlıyoruz.
 
 Jenkins için ajanımız hazır.
+
+#### Jenkins Pipeline (CI/CD Hattı) Hazırlama
+
+Jenkins ana sayfasına gidip `New Item` butonuna tıklıyoruz. Karşımıza çıkan sayfada projemiz için oluşturmak istediğiniz `Pipeline` ismini ve proje türünü Pipeline olarak seçip devam ediyoruz.
+
+<img src="https://miro.medium.com/v2/resize:fit:720/format:webp/1*XvLU09gyRlizzMYL1LQF9w.png"></img>
+
+Pipeline konfigürasyon sayfasında ilk başta Build Triggers başlığının altındaki seçenekleri ellememenizi tavsiye ediyorum fakat ardından Jenkins kullanma amacınız olacak bu seçeneklere değineceğiz.
+
+Pipeline başlığının altında bulunan `Definition` seçeneğini örnek projemizde `Pipeline Script From SCM` olarak seçeceğiz fakat siz kendi projenizde `Pipeline Script` olarak seçerek devam edebilirsiniz, tek farklı scripti `Github` Projesinden çekmiyor oluşunuz olacak. `SCM` seçeneğini `Git` olarak seçtikten sonra `Github Repo URL`’nizi gerekli yere girip, eğer Private Repo ise Github giriş bilgilerinizi de ekledikten sonra, `branch` ismini de değiştirmeniz gerekiyorsa düzenledikten sonra `Save` butonuna basıp devam edebilirsiniz.
+Bu repositorynin içerisinde bulunan `Dockerfile`, `Jenkinsfile`, `docker-compose.yml` dosyalarından faydalanarak bir test projesi ayağa kaldırabilirsiniz.
+
+#### Dockerfile'ı İnceleyelim
+
+```Dockerfile
+FROM python
+
+RUN apt-get update -y;apt-get upgrade -y
+
+RUN mkdir -p /var/www/html
+
+WORKDIR /var/www/html
+
+COPY . . 
+
+EXPOSE 80
+
+CMD ["python3","myscript.py","-p","80"]
+```
+> `FROM` kullanacağımız Docker imageını belirlemekte
+
+> `RUN` çalıştırılacak konteyner içerisinde komut çalıştırmamızı sağlamakta
+
+> `WORKDIR` komutların çalıştırılacağı dosya dizinini belirlemekte, shell içerisinde `cd` komutuyla eşdeğer görebilirisiniz.
+
+> `COPY` belirlenen dizindeki dosyaları konteynerın belirlenen dizinine kopyalamakta, burada mevcut dizindeki dosyaları `WORKDIR` ile belirlenen konteyner dizinine kopyalamaktayız.
+
+> `EXPOSE` belirlenen portu dışarıdan erişilebilir yapmakta
+
+> `CMD` konteyner başlatıldığında çalıştırılacak ilk komutu belirlemekte.
+
+#### docker-compose.yml Dosyasını İnceleyelim
+
+```YAML
+services:
+  www:
+    build: .
+    ports:
+      - "80:80"
+    networks:
+      - devops
+networks:
+  devops:
+    driver: bridge
+```
+
+> `services` çalıştırılacak konteynerlerin belirleneceği başlık
+
+> `networks` oluşturulacak Docker ağlarının tanımlanacağı başlık
+
+>  `www` web sunucumuzun ismi ve konteyner için başlık
+
+> `build` Dockerfile'ı bulacağı dizini belirtlir
+
+> `ports` port yönlendirmelerinin tanımlandığı başlıktır
+
+> `networks` konteynerin dahil olacağı docker ağlarının belirlendiği başlıktır
+
+Docker compose ile çalıştıracağımız konteyneri Docker CLI ile çalıştırmak isteseydik komtuk aşağıdaki gibi olacaktı;
+```bash
+docker run -p 80:80 --network=devops --name=jenkins-test-www <docker image ismi>
+```
+Docker compose bizim için otomatik olarak hem `Build` hem `Run` işlevini yerine getirmekte.
+
+#### Jenkinsfile'ı İnceleyelim
+
+```groovy
+pipeline {
+  agent {
+    label "docker-agent"
+  }
+  stages {
+    stage('Stop and Remove Existing Containers') {
+      steps{
+        sh 'docker compose down'
+      }
+    }
+    stage ('Run Docker Compose') {
+      steps{
+        sh 'docker compose up -d --build'
+      }
+    }
+  }
+}
+```
+
+> `pipeline` bir pipeline'ın olduğunu belirler
+
+> `agent` kullanılacak ajanın özelliklerinin tanımlandığı bölümdür, bizim ajanımızın ismi ve `label` değeri `docker-agent` olduğu için `label 'docker-agent'` tanımlamasıyla hangi ajanı kullanmak istediğimizi belirtiyoruz.
+
+> 'stages' pipeline adımlarının tanımlandığı bölümdür
+
+> `stage` ve `steps` pipele adımının ismini ve o adımda nelerin gerçekleştirileceğini belirlendiği bölümlerdir
+
+Bizim pipeline hattımızda öncelikle eğer varsa Docker Compose ile çalıştırılmış konteyner(ler)ı durdurmak ardından `-d` flagi ile `deamon` veya `deattached` modda `--build` flagi ile de eğer yapabiliyorsa imagei build etmesini sağlayarak konteyner(ler)i çalıştırmakta
+
