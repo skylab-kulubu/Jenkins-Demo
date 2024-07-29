@@ -1,0 +1,12 @@
+services:
+  www:
+    build: .
+    image: simple-webserver
+    container_name: simple-webserver-container
+    ports:
+      - "80:80"
+    networks:
+      - devops
+networks:
+  devops:
+    driver: bridge
