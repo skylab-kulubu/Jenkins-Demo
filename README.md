@@ -9,9 +9,9 @@
 ## Docker Kurulumu
 Eğer sisteminizde önceden `sudo apt-get install docker.io`, `sudo dnf install docker` ve `sudo yum install docker` gibi komutları kullanarak paket yöneticisi ile Docker yüklenmiş bir sistemde çalışıyorsanız aşağıdaki komut ile Docker'ı sisteminizden tamamen silin.
 
-'''bash
+```bash
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
-'''
+```
 Bu komut yalnızca Debian tabanlı sistemlerde çalışacaktır! Diğer Linux dağıtımları için;
 
 RHEL
