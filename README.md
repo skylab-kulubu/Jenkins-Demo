@@ -275,7 +275,7 @@ Bizim pipeline hattımızda öncelikle eğer varsa Docker Compose ile çalışt�
 Bütün adımlar başarılı bir şekilde gerçekleştiğinde `Build Now` butonuna bastığınız zaman Jenkins'i çalıştırdığınız makinenin `80` portundan websitesine erişebilirsiniz, Pipeline'ı SCM'e bağlayarak her `commit` yapıldığında veya belirli zaman aralıklarıyla yapılacak kontroller sonucu Pipeline tetiklenecek ve web sunucumuzun içeriği değişecek.
 
 ## Pipeline'a Güvenlik Entegrasyonu
-### Trufflehog
+### [Trufflehog](https://github.com/trufflesecurity/trufflehog)
 ```groovy
 stage('Trufflehog') {
       steps {
@@ -298,7 +298,7 @@ docker pull trufflesecurity/trufflehog:latest
 > `--repo` Trufflehog'a özel bir parametredir ve belirtilen Git Repositorysini taramasını sağlar, bizim örneğimizde `$GIT_URL` değişkeni Jenkins tarafından sağlanarak Pipeline oluştururken belirtilen Git URL'sini referans etmektedir.
 
 Trufflehog bizim için `Credidental Hygen` konseptini sağlamaktadir. API anahtarı, JWT Token, kullanıcı adı ve şifresi gibi bilgileri tarayarak olası bilgi güvenliği sorunlarının önüne geçmektedir.
-### Trivy
+### [Trivy](https://aquasecurity.github.io/trivy/v0.53/docs/)
 Trivy bizim için Trufflehog ile aynı işlemleri gerçekleştirmekle beraber Build edilen Docker imagelerini de tarayarak konteyner güvenliği kapsamında da çalışmaktadır. İlk örnekte repository scan, ikinci örnekte ise Docker Image Scan işlemlerini gerçekleştirmektedir.
 Trivy sisteminize yüklemek için talimatları [resmi kaynaktan](https://aquasecurity.github.io/trivy/v0.18.3/installation/) inceleyebilirsiniz.
 ```groovy
@@ -332,7 +332,7 @@ stage('Trivy Docker Image Scan'){
 
 
 
-### OWASP ZAP
+### [OWASP ZAP](https://www.zaproxy.org/docs/docker/about/)
 OWASP ZAP uygulamasının docker ile çalıştırılabilir bir versiyonudur, çalışır durumdaki web uygulmasını taramamızı sağlar. Diğer uygulamalarda statik analiz yaparken ZAP dinamik analiz yapmakta.
 
 ```groovy
