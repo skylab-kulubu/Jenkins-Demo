@@ -329,7 +329,32 @@ stage('Trivy Docker Image Scan'){
 > `--severity` belirli riskteki güvenli sorunlarını göstermesini belirtir
 
 ### Snyk
+https://app.snyk.io/account adresine hesap açtıktan sonra giderek API anahtarınızı öğrenmelisiniz.
+![](https://i.hizliresim.com/smj5qz8.jpg)
 
+Sırasıyla
+
+`Jenkins Ana Sayfası > Manage Jenkins > Plugins > Snyk Security`
+
+eklentiyi yüklüyoruz. Ardından Jenkins’i yeniden başlatıyoruz.
+
+`Manage Jenkins > Credidentals > (global) > Add Credidentals`
+
+bulunduğumuz sayfadan `Kind` seçeneğini `Snyk API Token` olarak seçip token girdisini giriyoruz. `ID` olarak Jenkinsfile’a girdi olarak girebileceğiniz bir metin giriniz.
+
+`Manage Jenkins > Tools > Snyk Installations`
+
+ve buradan name bölümüne `snyk@latest` girdikten sonra kaydediyoruz.
+
+Jenkinsfile’a Snyk bölümünü eklemek için;
+```groovy
+stage('Snyk Security') {
+      steps {
+        echo 'Testing...'
+        snykSecurity(snykInstallation: 'SNYK Installation Adı',snykTokenId: '<SNYK TOKEN ID'>')
+      }
+    }
+```
 
 
 ### [OWASP ZAP](https://www.zaproxy.org/docs/docker/about/)
